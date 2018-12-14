@@ -1,13 +1,11 @@
-
 " File: init.vim
 " Link: https://github.com/vonbrownie/dotfiles
 
 " == General Configuration ==
-
-set nocompatible            " Disable compatibility to old-time vi
+" set nocompatible ?
 set showmatch               " Show matching brackets.
 set ignorecase              " Do case insensitive matching
-"set mouse=a                " Enable mouse usage (all modes)
+set mouse=a               " Enable mouse usage (all modes)
 set mouse=v                 " middle-click paste with mouse
 set hlsearch                " highlight search results
 set tabstop=4               " number of columns occupied by a tab character
@@ -18,14 +16,20 @@ set autoindent              " indent a new line the same amount as the line just
 set number                  " add line numbers
 set wildmode=longest,list   " get bash-like tab completions
 set laststatus=2
-" set cc=80                   " set an 80 column border for good coding style
+" Terminal Emulator setting
 tnoremap <Esc> <C-\><C-n>
 set t_Co=256
 set ttimeoutlen=10
 set encoding=utf-8
+" can toggle this on or off but it's a huge optimization since I already have
+" cursor line in iTerm2
+set nocursorline
+" can toggle if still too slow
+" set lazyredraw
 
 " color scheme
 colorscheme nord
+
 if has('termguicolors') && $TERM_PROGRAM ==# 'iTerm.app' && $TERM !~# '^\%(screen\|tmux\)'
    set termguicolors
 else
@@ -62,12 +66,16 @@ Plugin 'airblade/vim-gitgutter'
 Plugin 'vim-syntastic/syntastic'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-Plugin 'scrooloose/nerdtree'
-Plugin 'ctrlpvim/ctrlp.vim'
-Plugin 'Xuyuanp/nerdtree-git-plugin'
-Plugin 'tiagofumo/vim-nerdtree-syntax-highlight'
+if !has("gui_vimr")
+    Plugin 'scrooloose/nerdtree'
+    Plugin 'Xuyuanp/nerdtree-git-plugin'
+    Plugin 'tiagofumo/vim-nerdtree-syntax-highlight'
+endif
 Plugin 'ryanoasis/vim-devicons'
 Plugin 'ryanoasis/vim-webdevicons'
+Plugin 'godlygeek/tabular'
+Plugin 'ctrlpvim/ctrlp.vim'
+
 " All of your Plugins must be added before the following line
 call vundle#end()
 filetype plugin indent on  " allows auto-indenting depending on file type
@@ -82,8 +90,9 @@ call plug#begin('~/.config/nvim/plugged')
 " nord vim theme
 Plug 'arcticicestudio/nord-vim'
 Plug 'vim-scripts/trailing-whitespace'
+" python syntax highlighting
+Plug 'vim-python/python-syntax'
 
-" Initialize plugin system
 call plug#end()
 
 " vimwiki
@@ -93,21 +102,29 @@ call plug#end()
 let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlP'
 " syntastic
+autocmd VimEnter * SyntasticToggleMode " disable syntastic by default
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
+
+" Enable python syntax highlight
+let g:python_highlight_all = 1
 
 " status line for nord
 let g:nord_uniform_status_lines = 1
 
 " nord comments
-let g:nord_comment_brightness = 12
+let g:nord_comment_brightness = 30
 
 " italics
 let g:nord_italic = 1
 
 "italic comments
 let g:nord_italic_comments = 1
+highlight Comment cterm=italic
+let &t_ZH="\e[3m"
+let &t_ZR="\e[23m"
+highlight Comment gui=italic
 
 " underline in nord
 let g:nord_underline = 1
@@ -118,14 +135,21 @@ let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 let g:syntastic_python_pylint_exe = 'python3 -m pylint3'
 
-"airline 
+"airline
 let g:airline_theme='nord'
 
 let g:airline_powerline_fonts = 1
 
-set guifont=DroidSansMono_Nerd_Font:h11
-
 let g:airline#extensions#tabline#enabled = 1
+
+" Webdevicons configuration
+let g:webdevicons_enable = 1
+let g:webdevicons_enable_nerdtree = 1
+let g:webdevicons_enable_airline_tabline = 1
+let g:webdevicons_enable_airline_statusline = 1
+let g:WebDevIconsNerdTreeAfterGlyphPadding = ' '
+let g:WebDevIconsUnicodeGlyphDoubleWidth = 1
+let g:webdevicons_conceal_nerdtree_brackets = 1
 
 if !exists('g:airline_symbols')
     let g:airline_symbols = {}
@@ -164,9 +188,22 @@ let g:airline_symbols.maxlinenr = ''
 let g:airline_symbols.whitespace = ''
 
 " Configure NERDTree settings
-"
-let g:NERDTreeDirArrowExpandable = '⬗'
-let g:NERDTreeDirArrowCollapsible = '⬙'
+
+" Makses nerd tree a little faster maybe. I'll add more optimization features
+" as I find them.
+let g:nerdtree_tabs_open_on_gui_startup=0
+" let g:NERDTreeLimitedSyntax = 1
+"  or 
+let g:NERDTreeDirArrowExpandable = ''
+let g:NERDTreeDirArrowCollapsible = ''
+
+" autocmd StdinReadPre * let s:std_in=1
+" autocmd VimEnter * if argc() == 0 && !exists(“s:std_in”) | NERDTree | endif
+" autocmd bufenter * if (winnr(“$”) == 1 && exists(“b:NERDTreeType”) && b:NERDTreeType == “primary”) | q | endif
+let NERDTreeQuitOnOpen = 1
+let NERDTreeAutoDeleteBuffer = 1
+let NERDTreeMinimalUI = 1
+let NERDTreeDirArrows = 1
 
 let g:NERDTreeIndicatorMapCustom = {
     \ "Modified"  : "📝",
@@ -181,9 +218,16 @@ let g:NERDTreeIndicatorMapCustom = {
     \ "Unknown"   : "❓"
     \ }
 
-let g:WebDevIconsUnicodeDecorateFolderNodes = 1
-
+let g:DevIconsArtifactFix = 1
+" Disabling folder notes from showing. It's not working correctly.
+" let g:WebDevIconsUnicodeDecorateFolderNodes = 0
 let g:WebDevIconsUnicodeDecorateFileNodesDefaultSymbol=''
+" let g:WebDevIconsUnicodeDecorateFolderNodeDefaultSymbol = ''
+
+" after a re-source, fix syntax matching issues (concealing brackets):
+if exists('g:loaded_webdevicons')
+    call webdevicons#refresh()
+endif
 
 let g:NERDTreeHighlightFolders = 1 " enables folder icon highlighting using exact match
 let g:NERDTreeHighlightFoldersFullName = 1 " highlights the folder name
@@ -234,7 +278,9 @@ let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols = {}
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['.gitignore'] = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['.gitconfig'] = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['webpack.config.js'] = ''
-let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['node_modules'] = ''
+" let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['node_modules'] = ''
+" ^^ very slow plus it doesn't work since I don't do the folder high light
+" thing anymore
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['.git'] = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['gemfile'] = ''
 let g:WebDevIconsUnicodeDecorateFileNodesExactSymbols['gemfile.lock'] = ' '
@@ -252,3 +298,10 @@ let g:WebDevIconsUnicodeDecorateFileNodesPatternSymbols['.*_spec\.rb$'] = ''
 
 let g:NERDTreePatternMatchHighlightColor = {}
 let g:NERDTreePatternMatchHighlightColor['.*_spec\.rb$'] = s:rspec_red
+
+" Python related nvim stuff
+let g:python_host_prog = '/usr/local/bin/python2.7'
+let g:python3_host_prog = '$HOME/anaconda3/bin/python3'
+
+let g:loaded_python_provider = 0
+let g:loaded_python3_provider = 0
